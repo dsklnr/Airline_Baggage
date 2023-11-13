@@ -1,0 +1,127 @@
+---
+title: "ADS-506 Final Project - Baggage Complaints"
+author: "Team 4: Sowmiya Kanmani Maruthavanan, Ben Ogle, Vicky van der Wagt"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+knitr:
+  opts_chunk:
+    warning=FALSE
+---
+
+## Import relevant libraries
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+library(lubridate)
+library(dplyr)
+library(forecast)
+library(zoo)
+library(ggplot2)
+library(corrplot)
+```
+
+## Pre-Processing
+
+### Import data
+
+```{r}
+df <- read.csv("baggagecomplaints.csv")
+head(df)
+summary(df)
+dim(df)
+```
+
+The dataset contains 252 rows and 8 columns
+
+### Check for null values
+
+```{r}
+missing <- colSums(is.na(df))
+print(missing)
+```
+
+There are no missing values in this dataset. 
+
+
+### Convert categorical columns into factors
+
+```{r}
+#converting month and year to categorical 
+df$Month <- factor(df$Month)
+df$Year <- factor(df$Year)
+df$Airline <- factor(df$Airline)
+```
+
+
+### Transform data into time series
+
+The time series starts in 2004 and ends in 2010. The frequency is set to 12 because the data is monthly and there are 12 months in a year. 
+
+```{r}
+df.ts <- ts(df$Date, 
+               start = c(2004), 
+               end = c(2010), 
+               frequency = 12)
+```
+
+### Correlation plot
+
+```{r}
+numerical <- df[sapply(df, is.numeric)]
+cor_matrix <- cor(numerical)
+corrplot(cor_matrix,
+         method = "number",
+         tl.col = "black")
+```
+
+
+There are positive correlations between all the numerical variables 'Baggage', 'Scheduled', 'Canceleled', and 'Enplaned'. High correlations exist between 'Baggage' and 'Scheduled', as well as 'Baggage' and 'Enplaned.' Moderate correlations exist between 'Cancelled' and 'Baggage', as well as 'Bagged' and 'Enplaned.' There is a very weak relationship between 'Cancelled' and 'Emplaned.'
+
+### Feature Creation
+```{r}
+df$Cancelled_prop <- df$Cancelled / df$Scheduled
+df$Flights <- df$Scheduled - df$Cancelled
+df$Enplaned_per_flight <- df$Enplaned / df$Flights
+df$Complaints_per_enplaned <- df$Baggage / df$Enplaned
+
+```
+
+#### Created 4 new calculated features:
+
+* Cancelled_prop: the proportion of cancelled flights
+* Flights: the number of flights that were not cancelled
+* Enplaned_per_flight: the number of enplaned passengers per flight
+* Complaints per enplaned: the proportion of complains over the total number of passengers
+
+### Correlation matrix after feature creation
+
+View the correlation matrix after new features are created
+
+```{r}
+numerical <- df[sapply(df, is.numeric)]
+cor_matrix <- cor(numerical)
+corrplot(cor_matrix,
+         method = "number",
+         tl.col = "black",
+         tl.cex = 0.6)
+```
+
+#### The correlation plot after feature creation elicits some new insights:
+
+* Complaints per enplaned indiviudal have a strong positive correlation with the proportion of cancelled flights
+* There is a strong negative relationship between the number of enplaned individuals per flight, and the number of complaints per enplaned individual
+* There is a moderately strong relationship between the proportion of cancelled flights and the number of scheduled flights
+* There is a strong positive relationship between the number of flights and the number of baggage complaints
+
+## Exploratory Data Analysis
+
+```{r}
+
+```
+
+
+## Modeling
+

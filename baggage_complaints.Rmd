@@ -21,6 +21,7 @@ library(forecast)
 library(zoo)
 library(ggplot2)
 library(corrplot)
+library(plotly)
 ```
 
 ## Pre-Processing
@@ -28,10 +29,10 @@ library(corrplot)
 ### Import data
 
 ```{r}
-df <- read.csv("baggagecomplaints.csv")
-head(df)
-summary(df)
-dim(df)
+airlines_df <- read.csv("baggagecomplaints.csv")
+head(airlines_df)
+summary(airlines_df)
+dim(airlines_df)
 ```
 
 The dataset contains 252 rows and 8 columns
@@ -39,7 +40,7 @@ The dataset contains 252 rows and 8 columns
 ### Check for null values
 
 ```{r}
-missing <- colSums(is.na(df))
+missing <- colSums(is.na(airlines_df))
 print(missing)
 ```
 
@@ -50,9 +51,9 @@ There are no missing values in this dataset.
 
 ```{r}
 #converting month and year to categorical 
-df$Month <- factor(df$Month)
-df$Year <- factor(df$Year)
-df$Airline <- factor(df$Airline)
+airlines_df$Month <- factor(airlines_df$Month)
+airlines_df$Year <- factor(airlines_df$Year)
+airlines_df$Airline <- factor(airlines_df$Airline)
 ```
 
 
@@ -61,31 +62,35 @@ df$Airline <- factor(df$Airline)
 The time series starts in 2004 and ends in 2010. The frequency is set to 12 because the data is monthly and there are 12 months in a year. 
 
 ```{r}
-df.ts <- ts(df$Date, 
-               start = c(2004), 
-               end = c(2010), 
-               frequency = 12)
+# Create time series for 3 airlines
+american_eagle.ts <- ts(airlines_df[airlines_df$Airline == "American Eagle", "Baggage"], 
+                        start = c(2004,1), end = c(2010,12), freq = 12)
+
+hawaiian.ts <- ts(airlines_df[airlines_df$Airline == "Hawaiian", "Baggage"], 
+                        start = c(2004,1), end = c(2010,12), freq = 12)
+
+united.ts <- ts(airlines_df[airlines_df$Airline == "United", "Baggage"], 
+                        start = c(2004,1), end = c(2010,12), freq = 12)
 ```
 
 ### Correlation plot
 
 ```{r}
-numerical <- df[sapply(df, is.numeric)]
+numerical <- airlines_df[sapply(airlines_df, is.numeric)]
 cor_matrix <- cor(numerical)
 corrplot(cor_matrix,
          method = "number",
          tl.col = "black")
 ```
 
-
 There are positive correlations between all the numerical variables 'Baggage', 'Scheduled', 'Canceleled', and 'Enplaned'. High correlations exist between 'Baggage' and 'Scheduled', as well as 'Baggage' and 'Enplaned.' Moderate correlations exist between 'Cancelled' and 'Baggage', as well as 'Bagged' and 'Enplaned.' There is a very weak relationship between 'Cancelled' and 'Emplaned.'
 
 ### Feature Creation
 ```{r}
-df$Cancelled_prop <- df$Cancelled / df$Scheduled
-df$Flights <- df$Scheduled - df$Cancelled
-df$Enplaned_per_flight <- df$Enplaned / df$Flights
-df$Complaints_per_enplaned <- df$Baggage / df$Enplaned
+airlines_df$Cancelled_prop <- (airlines_df$Cancelled / airlines_df$Scheduled) * 100
+airlines_df$Flights <- airlines_df$Scheduled - airlines_df$Cancelled
+airlines_df$Enplaned_per_flight <- airlines_df$Enplaned / airlines_df$Flights
+airlines_df$Complaints_per_enplaned <- (airlines_df$Baggage / airlines_df$Enplaned) * 100 
 
 ```
 
@@ -94,14 +99,14 @@ df$Complaints_per_enplaned <- df$Baggage / df$Enplaned
 * Cancelled_prop: the proportion of cancelled flights
 * Flights: the number of flights that were not cancelled
 * Enplaned_per_flight: the number of enplaned passengers per flight
-* Complaints per enplaned: the proportion of complains over the total number of passengers
+* Complaints per enplaned: the proportion of complaints over the total number of passengers
 
 ### Correlation matrix after feature creation
 
 View the correlation matrix after new features are created
 
 ```{r}
-numerical <- df[sapply(df, is.numeric)]
+numerical <- airlines_df[sapply(airlines_df, is.numeric)]
 cor_matrix <- cor(numerical)
 corrplot(cor_matrix,
          method = "number",
@@ -119,8 +124,126 @@ corrplot(cor_matrix,
 ## Exploratory Data Analysis
 
 ```{r}
+# create time series plot
+plot(american_eagle.ts, xlab = "Year", ylab = "No of Complaints", ylim = c(1000, 40000), col="green",lwd = 1.5,
+     bty="l", main = "Baggage Complaints for Three Airlines")
+lines(hawaiian.ts, col="orange", lwd = 1.5, bty="l")
+lines(united.ts, col="steelblue", lwd = 1.5, bty="l")
 
+# Add a legend
+legend("topright", legend = c("United", "American Eagle", "Hawaiian"), col = c("steelblue", "green", "orange"), lwd = 1.5)
 ```
+
+Throughout the dataset, United Airlines consistently receives the highest number of complaints regarding mishandled baggage each month, while Hawaiian Airlines consistently records the lowest number of complaints in every month.
+
+The above plot shows a mild seasonality for American Eagle and United Airlines as there is a gradual increase in the baggage complaints at the beginning of each year. Additionally, it does not exhibit any trend as there is an increase and decrease in the baggage complaints for the three airlines.
+
+### Monthly Average Complaints for each airline
+
+```{r}
+# Monthly average complaints for each airline
+avg_complaints <- airlines_df %>% 
+  group_by(Airline, Month) %>% summarise_at(vars(Baggage), list(Avg_Complaints = mean))
+
+ggplot(avg_complaints, aes(x = Month, y = Avg_Complaints)) + 
+  geom_line(aes(color = Airline, group = Airline)) + 
+  labs(title = 'Monthly Average complaints', 
+       x = 'Month', 
+       y = 'Average No of complaints') 
+```
+Based on the above chart, on average,  United consistently receives a higher average number of complaints in comparison to other airlines. Additionally, it is observed that the number of complaints shows an increase from May to August and from November to December. Furthermore, the trend for Hawaiian Airlines appears comparatively stable, with less fluctuation compared to the other airlines.
+
+
+### Proportion of complaints for each airline
+
+```{r}
+# Create a Date variable from the 'Date' column
+airlines_df$Date <- as.Date(paste(airlines_df$Year, airlines_df$Month, "01", sep = "-"))
+
+# Line plot for complaints for every month for each airline
+ggplot(airlines_df, aes(x = Date, y = Complaints_per_enplaned, group = Airline, color = Airline)) +
+  geom_line() +
+  labs(title = "",
+       x = "Date",
+       y = "") +  
+  scale_x_date(date_labels = "%Y", date_breaks = "2 years") +  
+  theme_minimal() +
+  facet_wrap(~Airline, scales = "free_y") +  # Separate plots for each airline
+  theme(
+    axis.title.y = element_blank(),  
+    legend.position = "none",  
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+Upon examining the individual charts for each airline, it becomes evident that there was a rise in trends from 2004 to 2006, followed by a subsequent decline. Moreover, the plot highlights that Hawaiian Airlines had a big increase in complaints in 2010, while other airlines had a more steady rise in the number of complaints.
+
+### Explore cancellations over the years
+
+```{r}
+# Explore cancellations over the years
+ggplot(airlines_df, aes(x = as.Date(paste(Year, Month, "01", sep = "-")), y = Cancelled, group = Airline, color = Airline)) +
+  geom_line() + 
+  labs(title = "Cancellations Over the Years", 
+       x = "Date", 
+       y = "Number of Cancellations")
+```
+The above plot illustrates the annual trend of cancelled flights. It is observed that American Eagle has the highest count of cancelled flights and highest frequency of cancellations occur in January.
+
+### Explore the trend in the Cancelled flights for each airline
+
+```{r}
+# Create a Date variable from the 'Date' column
+airlines_df$Date <- as.Date(paste(airlines_df$Year, airlines_df$Month, "01", sep = "-"))
+
+# Line plot of cancelled flights for each airline
+ggplot(airlines_df, aes(x = Date, y = Cancelled, group = Airline, color = Airline)) +
+  geom_line() +
+  labs(title = "",
+       x = "Date",
+       y = "") +  
+  scale_x_date(date_labels = "%Y", date_breaks = "2 years") +  
+  theme_minimal() +
+  facet_wrap(~Airline, scales = "free_y") +  # Separate plots for each airline
+  theme(
+    axis.title.y = element_blank(),  
+    legend.position = "none",  
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+```
+In the provided graph, American Eagle and United share a similar pattern in the number of cancelled flights over the years, while Hawaiian Airlines demonstrates relatively fewer ups and downs. Hawaiian flight cancellations reached their highest point in 2008 and started to decrease afterward.
+
+### Explore monthly Cancelled proportions 
+
+```{r}
+# Working on this 
+
+# ggplot(airlines_df, aes(x = Month, y = Cancelled_prop, color = Airline)) +
+#   geom_line() +
+#   theme_minimal() +
+#   labs(title = "Cancelled Proportions of Each Airline Over Months",
+#        x = "Month",
+#        y = "") +
+#   scale_color_discrete(name = "Airline") +
+#   theme(legend.position = "top")
+```
+
+### Relationship between Baggage Complaints and Cancelled Flights
+
+```{r}
+# Calculate correlation coefficient
+corr_coeff <- cor(airlines_df$Cancelled, airlines_df$Baggage)
+cat("Correlation coefficient between Cancelled Flights and Baggage Complaints:", corr_coeff, "\n")
+
+# Scatter plot of Baggage vs. Cancelled
+ggplot(airlines_df, aes(x = Cancelled, y = Baggage, color=Airline)) +
+  geom_point() +
+  labs(title = "Scatter plot of Cancelled Flights vs. Baggage Complaints",
+       x = "Cancelled Flights",
+       y = "Baggage Complaints")
+```
+A correlation coefficient of 0.5944 indicates a moderate positive correlation between the number of cancelled flights and the number of baggage complaints. 
+
+Based on the plot, it is observed that there is a general upward trend indicating that there is a tendency for higher baggage complaints when there are more cancelled flights. Moreover, it is important to note that correlation does not imply causation. While there is a statistical association between cancelled flights and baggage complaints, it doesn't necessarily mean that one causes the other. There could be other factors influencing both variables.
 
 
 ## Modeling

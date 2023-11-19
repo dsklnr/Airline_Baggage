@@ -4,6 +4,7 @@ author: "Team 4: Sowmiya Kanmani Maruthavanan, Ben Ogle, Vicky van der Wagt"
 date: "`r Sys.Date()`"
 output:
   pdf_document: default
+     keep_md: true
   html_document:
     df_print: paged
 knitr:

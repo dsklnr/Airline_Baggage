@@ -12,7 +12,7 @@ knitr:
     warning=FALSE
 ---
 
-## Import relevant libraries
+## Import libraries
 
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
@@ -23,6 +23,8 @@ library(zoo)
 library(ggplot2)
 library(corrplot)
 library(plotly)
+library(gridExtra)
+
 ```
 
 ## Pre-Processing
@@ -47,6 +49,14 @@ print(missing)
 
 There are no missing values in this dataset. 
 
+### Check distribution of airlines
+
+```{r}
+airline_counts <- table(airlines_df$Airline)
+
+# Display the counts
+print(airline_counts)
+```
 
 ### Convert categorical columns into factors
 
@@ -73,6 +83,37 @@ hawaiian.ts <- ts(airlines_df[airlines_df$Airline == "Hawaiian", "Baggage"],
 united.ts <- ts(airlines_df[airlines_df$Airline == "United", "Baggage"], 
                         start = c(2004,1), end = c(2010,12), freq = 12)
 ```
+
+
+### Check for outliers
+
+```{r}
+baggage_box <- ggplot(airlines_df, aes(x = Airline, y = Baggage, fill=Airline)) +
+  geom_boxplot() +
+  labs(title = "Baggage by Airline")+
+  theme(legend.position = "none")
+
+cancelled_box <- ggplot(airlines_df, aes(x = Airline, y = Cancelled, fill=Airline)) +
+  geom_boxplot() +
+  labs(title = "Canceled by Airline")+
+  theme(legend.position = "none")
+
+scheduled_box <- ggplot(airlines_df, aes(x = Airline, y = Scheduled, fill=Airline)) +
+  geom_boxplot() +
+  labs(title = "Scheduled Flights by Airline") +
+  theme(legend.position = "none")
+
+
+enplaned_box <- ggplot(airlines_df, aes(x = Airline, y = Enplaned, fill=Airline)) +
+  geom_boxplot() +
+  labs(title = "Enplaned by Airline")+
+  theme(legend.position = "none")
+
+grid.arrange(baggage_box, cancelled_box, scheduled_box, enplaned_box, ncol = 2)
+
+
+```
+
 
 ### Correlation plot
 

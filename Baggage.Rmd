@@ -551,3 +551,89 @@ print(paste("RMSE for the original data (using mean):", round(hawiian_rmse_pred,
 # Get the summary of the ARIMA model (RMSE, forecasts, etc.)
 summary(pred_hawaiian)
 ```
+
+Validate the ARIMA model with the data from 2010
+
+```{r}
+# Plot the actual vs. predicted values
+plot(pred_american_eagle, main = "ARIMA Predictions", xlab = "Time", ylab = "Sales")
+lines(ae_ts_train, col = "green", lty = 1, lwd = 2)
+lines(pred_american_eagle_fitted, col = "chartreuse4", lty = 1, lwd = 2)
+lines(ae_ts_valid, col = "purple", lty = 1, lwd = 2)
+
+# Create a legend
+legend("bottomleft", legend = c("Actual Complaints", "ARIMA Complaints", "Validation Complaints", "ARIMA Validation"), col = c("green", "chartreuse4", "purple", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+```{r}
+# Calculate the mean of the training data
+mean_american_eagle_valid <- mean(as.numeric(ae_ts_valid))
+
+# Calculate the mean for the length of the training dataset
+american_eagle_predicted_values_valid <- rep(mean_american_eagle_valid, length(ae_ts_valid))
+
+# Compute RMSE
+american_eagle_rmse_pred_valid <- sqrt(mean((american_eagle_predicted_values_valid - as.numeric(ae_ts_valid))^2))
+print(paste("RMSE for the validation period (using mean):", round(american_eagle_rmse_pred_valid, 2)))
+```
+
+```{r}
+# Get the summary of the ARIMA model (RMSE, forecasts, etc.)
+summary(pred_american_eagle)
+```
+
+```{r}
+# Plot the actual vs. predicted values
+plot(pred_united, main = "ARIMA Predictions", xlab = "Time", ylab = "Sales")
+lines(united_ts_train, col = "blue", lty = 1, lwd = 2)
+lines(pred_united_fitted, col = "aquamarine", lty = 1, lwd = 2)
+lines(united_ts_valid, col = "purple", lty = 1, lwd = 2)
+
+# Create a legend
+legend("bottomleft", legend = c("Actual Complaints", "ARIMA Complaints", "Validation Complaints", "ARIMA Validation"), col = c("blue", "aquamarine", "purple", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+```{r}
+# Calculate the mean of the training data
+mean_united_valid <- mean(as.numeric(united_ts_valid))
+
+# Calculate the mean for the length of the training dataset
+united_predicted_values_valid <- rep(mean_united_valid, length(united_ts_valid))
+
+# Compute RMSE
+united_rmse_pred_valid <- sqrt(mean((united_predicted_values_valid - as.numeric(united_ts_valid))^2))
+print(paste("RMSE for the validation period (using mean):", round(united_rmse_pred_valid, 2)))
+```
+
+```{r}
+# Get the summary of the ARIMA model (RMSE, forecasts, etc.)
+summary(pred_united)
+```
+
+```{r}
+# Plot the actual vs. predicted values
+plot(pred_hawaiian, main = "ARIMA Predictions", xlab = "Time", ylab = "Sales")
+lines(hawaiian_ts_train, col = "orange", lty = 1, lwd = 2)
+lines(pred_hawaiian_fitted, col = "chocolate", lty = 1, lwd = 2)
+lines(hawaiian_ts_valid, col = "purple", lty = 1, lwd = 2)
+
+# Create a legend
+legend("bottomleft", legend = c("Actual Complaints", "ARIMA Complaints", "Validation Complaints", "ARIMA Validation"), col = c("orange", "chocolate", "purple", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+```{r}
+# Calculate the mean of the training data
+mean_hawaiian_valid <- mean(as.numeric(hawaiian_ts_valid))
+
+# Calculate the mean for the length of the training dataset
+hawaiian_predicted_values_valid <- rep(mean_hawaiian_valid, length(hawaiian_ts_valid))
+
+# Compute RMSE
+hawaiian_rmse_pred_valid <- sqrt(mean((hawaiian_predicted_values_valid - as.numeric(hawaiian_ts_valid))^2))
+print(paste("RMSE for the validation period (using mean):", round(hawaiian_rmse_pred_valid, 2)))
+```
+
+```{r}
+# Get the summary of the ARIMA model (RMSE, forecasts, etc.)
+summary(pred_hawaiian)
+```

@@ -23,6 +23,7 @@ library(zoo)
 library(ggplot2)
 library(corrplot)
 library(plotly)
+library(prophet)
 ```
 
 ## Pre-Processing
@@ -556,7 +557,7 @@ Validate the ARIMA model with the data from 2010
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(pred_american_eagle, main = "ARIMA Predictions", xlab = "Time", ylab = "Sales")
+plot(pred_american_eagle, main = "ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints")
 lines(ae_ts_train, col = "green", lty = 1, lwd = 2)
 lines(pred_american_eagle_fitted, col = "chartreuse4", lty = 1, lwd = 2)
 lines(ae_ts_valid, col = "purple", lty = 1, lwd = 2)
@@ -579,12 +580,18 @@ print(paste("RMSE for the validation period (using mean):", round(american_eagle
 
 ```{r}
 # Get the summary of the ARIMA model (RMSE, forecasts, etc.)
-summary(pred_american_eagle)
+forecast_pred_ae <- pred_american_eagle$mean
+
+# Calculate RMSE
+rmse_ae_arima <- sqrt(mean((forecast_pred_ae - ae_ts_valid) ^ 2))
+
+# Print RMSE
+cat("RMSE for ARIMA's forecast on United Airlines:", rmse_ae_arima)
 ```
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(pred_united, main = "ARIMA Predictions", xlab = "Time", ylab = "Sales")
+plot(pred_united, main = "ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints")
 lines(united_ts_train, col = "blue", lty = 1, lwd = 2)
 lines(pred_united_fitted, col = "aquamarine", lty = 1, lwd = 2)
 lines(united_ts_valid, col = "purple", lty = 1, lwd = 2)
@@ -594,10 +601,10 @@ legend("bottomleft", legend = c("Actual Complaints", "ARIMA Complaints", "Valida
 ```
 
 ```{r}
-# Calculate the mean of the training data
+# Calculate the mean of the validation data
 mean_united_valid <- mean(as.numeric(united_ts_valid))
 
-# Calculate the mean for the length of the training dataset
+# Calculate the mean for the length of the validation dataset
 united_predicted_values_valid <- rep(mean_united_valid, length(united_ts_valid))
 
 # Compute RMSE
@@ -607,12 +614,18 @@ print(paste("RMSE for the validation period (using mean):", round(united_rmse_pr
 
 ```{r}
 # Get the summary of the ARIMA model (RMSE, forecasts, etc.)
-summary(pred_united)
+forecast_pred_united <- pred_united$mean
+
+# Calculate RMSE
+rmse_united_arima <- sqrt(mean((forecast_pred_united - united_ts_valid) ^ 2))
+
+# Print RMSE
+cat("RMSE for ARIMA's forecast on United Airlines:", rmse_united_arima)
 ```
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(pred_hawaiian, main = "ARIMA Predictions", xlab = "Time", ylab = "Sales")
+plot(pred_hawaiian, main = "ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints")
 lines(hawaiian_ts_train, col = "orange", lty = 1, lwd = 2)
 lines(pred_hawaiian_fitted, col = "chocolate", lty = 1, lwd = 2)
 lines(hawaiian_ts_valid, col = "purple", lty = 1, lwd = 2)
@@ -622,7 +635,223 @@ legend("bottomleft", legend = c("Actual Complaints", "ARIMA Complaints", "Valida
 ```
 
 ```{r}
-# Calculate the mean of the training data
+# Calculate the mean of the validation data
+mean_hawaiian_valid <- mean(as.numeric(hawaiian_ts_valid))
+
+# Calculate the mean for the length of the validation dataset
+hawaiian_predicted_values_valid <- rep(mean_hawaiian_valid, length(hawaiian_ts_valid))
+
+# Compute RMSE
+hawaiian_rmse_pred_valid <- sqrt(mean((hawaiian_predicted_values_valid - as.numeric(hawaiian_ts_valid))^2))
+print(paste("RMSE for the validation period (using mean) on Hawaiian Airlines:", round(hawaiian_rmse_pred_valid, 2)))
+```
+
+```{r}
+# Get the summary of the ARIMA model (RMSE, forecasts, etc.)
+forecast_pred_hawaiian <- pred_hawaiian$mean
+
+# Calculate RMSE
+rmse_hawaiian_arima <- sqrt(mean((forecast_pred_hawaiian - hawaiian_ts_valid) ^ 2))
+
+# Print RMSE
+cat("RMSE for ARIMA's forecast on Hawaiian Airlines:", rmse_hawaiian_arima)
+```
+
+I think the RMSE scores can be improved by creating ensembles with the Holt-Winter's and ARIMA models
+
+```{r}
+# Forecast American Eagle Airlines using Holt-Winter's exponential smoothing with multiplicative seasonality
+hwin_ae <- ets(ae_ts_train, model = "MAM")
+hwin_pred_ae <- forecast(hwin_ae, h = 12, level = 0.95)  # Use a 95% confidence level
+hwin_pred_ae
+```
+
+```{r}
+# Plot the actual vs. predicted values
+plot(hwin_pred_ae, main = "Holt-Winter's Predictions", xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(0, 35000))
+lines(ae_ts_train, col = "green", lty = 1, lwd = 2)
+lines(hwin_pred_ae$fitted, col = "chartreuse4", lty = 1, lwd = 2)
+lines(ae_ts_valid, col = "purple", lty = 1, lwd = 2)
+
+# Create a legend
+legend("bottomleft", legend = c("Actual Complaints", "Holt-Winter's Train", "Validation Complaints", "Holt-Winter's Forecast"), col = c("green", "chartreuse4", "purple", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+```{r}
+# Calculate the mean of the validation data
+mean_ae_valid <- mean(as.numeric(ae_ts_valid))
+
+# Calculate the mean for the length of the validation dataset
+ae_predicted_values_valid <- rep(mean_ae_valid, length(ae_ts_valid))
+
+# Compute RMSE
+ae_rmse_pred_valid <- sqrt(mean((ae_predicted_values_valid - as.numeric(ae_ts_valid))^2))
+print(paste("RMSE for the validation period (using mean):", round(ae_rmse_pred_valid, 2)))
+```
+
+
+```{r}
+# Extract the mean forecast from hwin_pred_united
+forecast_values_ae <- hwin_pred_ae$mean
+
+# Calculate RMSE
+rmse_hw_ae <- sqrt(mean((forecast_values_ae - ae_ts_valid) ^ 2))
+
+# Print RMSE
+cat("RMSE for Holt-Winter's forecast on American Eagle Airlines:", rmse_ae)
+```
+
+
+Create an ensemble
+```{r}
+# Combine forecasts from Holt-Winter's and ARIMA models
+ensemble_forecast_ae <- (hwin_pred_ae$mean + pred_american_eagle$mean) / 2
+
+# Plot the actual vs. predicted values
+plot(ae_ts_valid, main = "Ensemble Forecast", xlab = "Time", ylab = "Sales", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(5000, 30000))
+lines(ae_ts_train, col = "green", lty = 1, lwd = 2)
+lines(ensemble_forecast_ae, col = "red", lty = 1, lwd = 2)  # Add line for ensemble forecast
+
+# Create a legend
+legend("bottomleft", legend = c("Actual Complaints", "Validation Complaints", "Ensemble Forecast"), 
+       col = c("green", "purple", "red"), lty = c(1, 1, 1, 1), lwd = c(2, 2, 2, 2))
+
+```
+
+```{r}
+# Calculate RMSE
+rmse_ensemble_ae <- sqrt(mean((ensemble_forecast_ae - ae_ts_valid) ^ 2))
+
+# Print RMSE
+cat("United Ensemble Forecast RMSE:", rmse_ensemble_ae)
+```
+
+```{r}
+print(paste("RMSE for the validation period (using mean):", round(ae_rmse_pred_valid, 2)))
+```
+
+
+```{r}
+# Forecast United Airlines using Holt-Winter's exponential smoothing with multiplicative seasonality
+hwin_united <- ets(united_ts_train, model = "MAM")
+hwin_pred_united <- forecast(hwin_united, h = 12, level = 0.95)  # Use a 95% confidence level
+hwin_pred_united
+```
+
+```{r}
+# Plot the actual vs. predicted values
+plot(united_ts_valid, main = "Holt-Winter's Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(0, 60000))
+lines(hwin_pred_united$mean, col = "red", lty = 1, lwd = 2)
+lines(united_ts_train, col = "blue", lty = 1, lwd = 2)
+lines(hwin_pred_united$fitted, col = "aquamarine", lty = 1, lwd = 2)
+
+# Create a legend
+legend("topleft", legend = c("Validation Complaints", "Holt-Winter's Forecast", "Actual Complaints", "Holt-Winter's Train"), 
+       col = c("purple", "red", "blue", "aquamarine"), lty = c(1, 1, 1, 1), lwd = c(2, 2, 2, 2))
+
+```
+
+```{r}
+# Extract the mean forecast from hwin_pred_united
+forecast_values_united <- hwin_pred_united$mean
+
+# Calculate RMSE
+rmse_hw_united <- sqrt(mean((forecast_values_united - united_ts_valid) ^ 2))
+
+# Print RMSE
+cat("RMSE for Holt-Winter's forecast on United Airlines:", rmse_united)
+```
+
+```{r}
+# Combine forecasts from Holt-Winter's and ARIMA models
+ensemble_forecast_united <- (hwin_pred_united$mean + pred_united$mean) / 2
+
+# Plot the actual vs. predicted values
+plot(united_ts_valid, main = "Ensemble Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(0, 45000))
+lines(united_ts_train, col = "blue", lty = 1, lwd = 2)
+lines(ensemble_forecast_united, col = "red", lty = 1, lwd = 2)
+
+# Create a legend
+legend("bottomleft", legend = c("Actual Complaints", "Validation Complaints", "Ensemble Forecasts"), col = c("blue", "purple", "red"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+```{r}
+# Calculate RMSE
+rmse_ensemble_united <- sqrt(mean((ensemble_forecast_united - united_ts_valid) ^ 2))
+
+# Print RMSE
+cat("United Ensemble Forecast RMSE:", rmse_ensemble_united)
+```
+
+```{r}
+# Calculate the mean of the validation data
+mean_united_valid <- mean(as.numeric(united_ts_valid))
+
+# Calculate the mean for the length of the validation dataset
+united_predicted_values_valid <- rep(mean_united_valid, length(united_ts_valid))
+
+# Compute RMSE
+united_rmse_pred_valid <- sqrt(mean((united_predicted_values_valid - as.numeric(united_ts_valid))^2))
+print(paste("RMSE for the validation period (using mean):", round(united_rmse_pred_valid, 2)))
+```
+
+
+```{r}
+# Forecast Hawaiian Airlines using Holt-Winter's exponential smoothing with multiplicative seasonality
+hwin_hawaiian <- ets(hawaiian_ts_train, model = "MAM")
+hwin_pred_hawaiian <- forecast(hwin_hawaiian, h = 12, level = 0.95)  # Use a 95% confidence level
+hwin_pred_hawaiian
+```
+
+```{r}
+# Plot the actual vs. predicted values
+plot(hawaiian_ts_valid, main = "Holt-Winter's vs ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(1000, 3500))
+lines(hawaiian_ts_train, col = "orange", lty = 1, lwd = 2)
+lines(hwin_pred_hawaiian$fitted, col = "chocolate", lty = 1, lwd = 2)
+lines(hawaiian_ts_valid, col = "purple", lty = 1, lwd = 2)
+lines(hwin_pred_hawaiian$mean, col = "red", lty = 1, lwd = 2)
+
+# Create a legend
+legend("topleft", legend = c("Actual Complaints", "Holt-Winter's Train", "Validation Complaints", "Holt-Winter's Train"), 
+       col = c("orange", "chocolate", "purple", "red"), lty = c(1, 1, 1), lwd = c(2, 2, 2))
+
+```
+
+```{r}
+# Extract the mean forecast from hwin_pred_united
+forecast_values_hawaiian<- hwin_pred_hawaiian$mean
+
+# Calculate RMSE
+rmse_hw_hawaiian <- sqrt(mean((forecast_values_hawaiian - hawaiian_ts_valid) ^ 2))
+
+# Print RMSE
+cat("RMSE for Holt-Winter's forecast on Hawaiian Airlines:", rmse_hw_hawaiian, "\n")
+```
+
+
+```{r}
+# Combine forecasts from Holt-Winter's and ARIMA models
+ensemble_forecast_hawaiian <- (hwin_pred_hawaiian$mean + pred_hawaiian$mean) / 2
+
+# Plot the actual vs. predicted values
+plot(hawaiian_ts_valid, main = "Ensemble Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(1000, 3500))
+lines(hawaiian_ts_train, col = "orange", lty = 1, lwd = 2)
+lines(ensemble_forecast_hawaiian, col = "red", lty = 1, lwd = 2)
+
+# Create a legend
+legend("topleft", legend = c("Actual Complaints", "Validation Complaints", "Ensemble Forecasts"), col = c("blue", "purple", "red"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+```{r}
+# Calculate RMSE
+rmse_ensemble_hawaiian <- sqrt(mean((ensemble_forecast_hawaiian - hawaiian_ts_valid) ^ 2))
+
+# Print RMSE
+cat("Hawaiian Ensemble Forecast RMSE:", rmse_ensemble_hawaiian)
+```
+
+```{r}
+# Calculate the mean of the validation data
 mean_hawaiian_valid <- mean(as.numeric(hawaiian_ts_valid))
 
 # Calculate the mean for the length of the training dataset
@@ -633,7 +862,134 @@ hawaiian_rmse_pred_valid <- sqrt(mean((hawaiian_predicted_values_valid - as.nume
 print(paste("RMSE for the validation period (using mean):", round(hawaiian_rmse_pred_valid, 2)))
 ```
 
+
+
+
+Print all of the RMSE scores, so we can compare each model
+
+American Eagle Airlines RMSE scores
 ```{r}
-# Get the summary of the ARIMA model (RMSE, forecasts, etc.)
-summary(pred_hawaiian)
+print(paste("RMSE for the American Eagle Airlines validation period (using mean):", round(american_eagle_rmse_pred_valid, 2)))
+```
+
+```{r}
+cat("RMSE for ARIMA's forecast on American Eagle Airlines:", rmse_ae_arima)
+```
+
+```{r}
+cat("RMSE for Holt-Winter's forecast on American Eagle Airlines:", rmse_hw_ae)
+```
+
+```{r}
+cat("RMSE for the ensemble forecast on American Eagle Airlines:", rmse_ensemble_ae)
+```
+
+
+
+
+United Airlines RMSE scores
+
+```{r}
+print(paste("RMSE for the United Airlines validation period (using mean):", round(united_rmse_pred_valid, 2)))
+```
+
+```{r}
+cat("RMSE for ARIMA's forecast on United Airlines:", rmse_united_arima)
+```
+
+```{r}
+cat("RMSE for Holt-Winter's forecast on United Airlines:", rmse_hw_united)
+```
+
+```{r}
+cat("RMSE for the ensemble forecast on United Airlines:", rmse_ensemble_united)
+```
+
+
+
+
+
+Hawaiian Airlines RMSE scores
+```{r}
+print(paste("RMSE for the validation period (using mean):", round(hawaiian_rmse_pred_valid, 2)))
+```
+
+```{r}
+cat("RMSE for ARIMA's forecast on United Airlines:", rmse_hawaiian_arima)
+```
+
+```{r}
+cat("RMSE for Holt-Winter's forecast on United Airlines:", rmse_hw_hawaiian)
+```
+
+```{r}
+cat("RMSE for the ensemble forecast on United Airlines:", rmse_ensemble_hawaiian)
+```
+
+Create new models to forecast for the next quarter according to the best RMSE scores from each of the above models
+
+American Eagle Airlines (Holt-Winter's model)
+```{r}
+# Forecast American Eagle Airlines using Holt-Winter's exponential smoothing with multiplicative seasonality
+hwin_ae_q1 <- ets(american_eagle.ts, model = "MAM")
+hwin_pred_ae_q1 <- forecast(hwin_ae_q1, h = 3, level = 0.95)  # Use a 95% confidence level
+hwin_pred_ae_q1
+```
+
+```{r}
+# Plot the actual vs. predicted values
+plot(hwin_pred_ae_q1, main = "Holt-Winter's Q1 2011 Predictions", xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(0, 35000))
+lines(american_eagle.ts, col = "green", lty = 1, lwd = 2)
+
+# Create a legend
+legend("topright", legend = c("Actual Complaints", "Holt-Winter's Complaints", "Q1 Forecast"), col = c("green", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+United Airlines (ensemble model - ARIMA & Holt Winter's)
+```{r}
+# Create an ARIMA model for Hawaiian Airlines
+arima_united_q1 <- auto.arima(united.ts)  
+pred_united_q1 <- forecast(arima_united_q1, h = 3, level = 0.95)
+pred_united_q1
+```
+
+
+```{r}
+# Forecast United Airlines using Holt-Winter's exponential smoothing with multiplicative seasonality
+hwin_united_q1 <- ets(united.ts, model = "MAM")
+hwin_pred_united_q1 <- forecast(hwin_united_q1, h = 3, level = 0.95)  # Use a 95% confidence level
+hwin_pred_united_q1
+```
+
+```{r}
+# Combine forecasts from Holt-Winter's and ARIMA models
+ensemble_forecast_united_q1 <- (pred_united_q1$mean + hwin_pred_united_q1$mean) / 2
+ensemble_forecast_united_q1
+```
+
+
+```{r}
+# Plot the actual vs. predicted values
+plot(ensemble_forecast_united_q1, main = "Ensemble Q1 2011 Predictions for United Airlines", col = "cornflowerblue" , xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(0, 45000))
+lines(united.ts, col = "blue", lty = 1, lwd = 2)
+
+# Create a legend
+legend("topright", legend = c("Actual Complaints", "Q1 Forecast"), col = c("blue", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+```
+
+Hawaiian Airlines (ARIMA model)
+```{r}
+# Create an ARIMA model for Hawaiian Airlines
+arima_hawaiian_q1 <- auto.arima(hawaiian.ts)  
+pred_hawaiian_q1 <- forecast(arima_hawaiian_q1, h = 3, level = 0.95)
+pred_hawaiian_q1
+```
+
+```{r}
+# Plot the actual vs. predicted values
+plot(pred_hawaiian_q1, main = "ARIMA Q1 2011 Predictions for Hawaiian Airlines", col = "cornflowerblue" , xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(1000, 3500))
+lines(hawaiian.ts, col = "orange", lty = 1, lwd = 2)
+
+# Create a legend
+legend("topright", legend = c("Actual Complaints", "Q1 Forecast"), col = c("orange", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
 ```

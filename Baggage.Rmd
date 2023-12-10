@@ -557,7 +557,7 @@ Validate the ARIMA model with the data from 2010
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(pred_american_eagle, main = "ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints")
+plot(pred_american_eagle, main = "ARIMA Predictions for American Eagle Airlines", xlab = "Time", ylab = "Baggage Complaints")
 lines(ae_ts_train, col = "green", lty = 1, lwd = 2)
 lines(pred_american_eagle_fitted, col = "chartreuse4", lty = 1, lwd = 2)
 lines(ae_ts_valid, col = "purple", lty = 1, lwd = 2)
@@ -591,7 +591,7 @@ cat("RMSE for ARIMA's forecast on United Airlines:", rmse_ae_arima)
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(pred_united, main = "ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints")
+plot(pred_united, main = "ARIMA Predictions for United Airlines", xlab = "Time", ylab = "Baggage Complaints")
 lines(united_ts_train, col = "blue", lty = 1, lwd = 2)
 lines(pred_united_fitted, col = "aquamarine", lty = 1, lwd = 2)
 lines(united_ts_valid, col = "purple", lty = 1, lwd = 2)
@@ -625,7 +625,7 @@ cat("RMSE for ARIMA's forecast on United Airlines:", rmse_united_arima)
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(pred_hawaiian, main = "ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints")
+plot(pred_hawaiian, main = "ARIMA Predictions for Hawaiian Airlines", xlab = "Time", ylab = "Baggage Complaints")
 lines(hawaiian_ts_train, col = "orange", lty = 1, lwd = 2)
 lines(pred_hawaiian_fitted, col = "chocolate", lty = 1, lwd = 2)
 lines(hawaiian_ts_valid, col = "purple", lty = 1, lwd = 2)
@@ -668,13 +668,13 @@ hwin_pred_ae
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(hwin_pred_ae, main = "Holt-Winter's Predictions", xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(0, 35000))
+plot(hwin_pred_ae, main = "Holt-Winter's Model for American Eagle Airlines", xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(0, 35000))
 lines(ae_ts_train, col = "green", lty = 1, lwd = 2)
 lines(hwin_pred_ae$fitted, col = "chartreuse4", lty = 1, lwd = 2)
 lines(ae_ts_valid, col = "purple", lty = 1, lwd = 2)
 
 # Create a legend
-legend("bottomleft", legend = c("Actual Complaints", "Holt-Winter's Train", "Validation Complaints", "Holt-Winter's Forecast"), col = c("green", "chartreuse4", "purple", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+legend("topright", legend = c("Actual Complaints", "Holt-Winter's Train", "Validation Complaints", "Holt-Winter's Forecast"), col = c("green", "chartreuse4", "purple", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
 ```
 
 ```{r}
@@ -708,7 +708,7 @@ Create an ensemble
 ensemble_forecast_ae <- (hwin_pred_ae$mean + pred_american_eagle$mean) / 2
 
 # Plot the actual vs. predicted values
-plot(ae_ts_valid, main = "Ensemble Forecast", xlab = "Time", ylab = "Sales", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(5000, 30000))
+plot(ae_ts_valid, main = "Ensemble Validation for American Eagle Airlines", xlab = "Time", ylab = "Sales", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(5000, 30000))
 lines(ae_ts_train, col = "green", lty = 1, lwd = 2)
 lines(ensemble_forecast_ae, col = "red", lty = 1, lwd = 2)  # Add line for ensemble forecast
 
@@ -740,7 +740,7 @@ hwin_pred_united
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(united_ts_valid, main = "Holt-Winter's Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(0, 60000))
+plot(united_ts_valid, main = "Holt-Winter's Model for United Airlines", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(0, 60000))
 lines(hwin_pred_united$mean, col = "red", lty = 1, lwd = 2)
 lines(united_ts_train, col = "blue", lty = 1, lwd = 2)
 lines(hwin_pred_united$fitted, col = "aquamarine", lty = 1, lwd = 2)
@@ -767,7 +767,7 @@ cat("RMSE for Holt-Winter's forecast on United Airlines:", rmse_united)
 ensemble_forecast_united <- (hwin_pred_united$mean + pred_united$mean) / 2
 
 # Plot the actual vs. predicted values
-plot(united_ts_valid, main = "Ensemble Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(0, 45000))
+plot(united_ts_valid, main = "Ensemble Validation for United Airlines", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(0, 45000))
 lines(united_ts_train, col = "blue", lty = 1, lwd = 2)
 lines(ensemble_forecast_united, col = "red", lty = 1, lwd = 2)
 
@@ -805,14 +805,14 @@ hwin_pred_hawaiian
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(hawaiian_ts_valid, main = "Holt-Winter's vs ARIMA Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(1000, 3500))
+plot(hawaiian_ts_valid, main = "Holt-Winter's Model for Hawaiian Airlines", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(1000, 3500))
 lines(hawaiian_ts_train, col = "orange", lty = 1, lwd = 2)
 lines(hwin_pred_hawaiian$fitted, col = "chocolate", lty = 1, lwd = 2)
 lines(hawaiian_ts_valid, col = "purple", lty = 1, lwd = 2)
 lines(hwin_pred_hawaiian$mean, col = "red", lty = 1, lwd = 2)
 
 # Create a legend
-legend("topleft", legend = c("Actual Complaints", "Holt-Winter's Train", "Validation Complaints", "Holt-Winter's Train"), 
+legend("topleft", legend = c("Actual Complaints", "Holt-Winter's Train", "Validation Complaints", "Holt-Winter's Validation"), 
        col = c("orange", "chocolate", "purple", "red"), lty = c(1, 1, 1), lwd = c(2, 2, 2))
 
 ```
@@ -834,7 +834,7 @@ cat("RMSE for Holt-Winter's forecast on Hawaiian Airlines:", rmse_hw_hawaiian, "
 ensemble_forecast_hawaiian <- (hwin_pred_hawaiian$mean + pred_hawaiian$mean) / 2
 
 # Plot the actual vs. predicted values
-plot(hawaiian_ts_valid, main = "Ensemble Predictions", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(1000, 3500))
+plot(hawaiian_ts_valid, main = "Ensemble Validation for Hawaiian Airlines", xlab = "Time", ylab = "Baggage Complaints", col = "purple", lty = 1, lwd = 2, xlim = c(2004, 2011), ylim = c(1000, 3500))
 lines(hawaiian_ts_train, col = "orange", lty = 1, lwd = 2)
 lines(ensemble_forecast_hawaiian, col = "red", lty = 1, lwd = 2)
 
@@ -938,11 +938,11 @@ hwin_pred_ae_q1
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(hwin_pred_ae_q1, main = "Holt-Winter's Q1 2011 Predictions", xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(0, 35000))
+plot(hwin_pred_ae_q1, main = "Holt-Winter's Q1 2011 Predictions for American Eagle Airlines", xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(0, 35000))
 lines(american_eagle.ts, col = "green", lty = 1, lwd = 2)
 
 # Create a legend
-legend("topright", legend = c("Actual Complaints", "Holt-Winter's Complaints", "Q1 Forecast"), col = c("green", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+legend("topright", legend = c("Actual Complaints", "Q1 2011 Forecast"), col = c("green", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
 ```
 
 United Airlines (ensemble model - ARIMA & Holt Winter's)
@@ -974,7 +974,7 @@ plot(ensemble_forecast_united_q1, main = "Ensemble Q1 2011 Predictions for Unite
 lines(united.ts, col = "blue", lty = 1, lwd = 2)
 
 # Create a legend
-legend("topright", legend = c("Actual Complaints", "Q1 Forecast"), col = c("blue", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
+legend("topright", legend = c("Actual Complaints", "Q1 2011 Forecast"), col = c("blue", "cornflowerblue"), lty = c(1, 1), lwd = c(1, 2))
 ```
 
 Hawaiian Airlines (ARIMA model)
@@ -987,7 +987,7 @@ pred_hawaiian_q1
 
 ```{r}
 # Plot the actual vs. predicted values
-plot(pred_hawaiian_q1, main = "ARIMA Q1 2011 Predictions for Hawaiian Airlines", col = "cornflowerblue" , xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(1000, 3500))
+plot(pred_hawaiian_q1, main = "Q1 2011 Predictions for Hawaiian Airlines", col = "cornflowerblue" , xlab = "Time", ylab = "Baggage Claims", xlim = c(2004, 2011), ylim = c(1000, 3500))
 lines(hawaiian.ts, col = "orange", lty = 1, lwd = 2)
 
 # Create a legend
